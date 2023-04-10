@@ -27,8 +27,8 @@ namespace BookGenreStore.WebApi.Controllers
             return Ok(books);
         }
 
-        [HttpGet("[action]/{id:guid}")]
-        public async Task<IActionResult> BookGenre([FromRoute] Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> BookGenres([FromRoute] Guid id)
         {
             var book = await _bookService
                 .GetBookGenreByGuidAsync(id);
@@ -41,7 +41,7 @@ namespace BookGenreStore.WebApi.Controllers
         {
             var bookGenre = _bookService
                 .AddBookGenreAsync(bookDto);
-            return CreatedAtRoute(nameof(BookGenre), new { id = bookGenre.Id }, bookGenre);
+            return CreatedAtRoute(nameof(BookGenres), new { id = bookGenre.Id }, bookGenre);
         }
 
         [HttpPost("[action]")]

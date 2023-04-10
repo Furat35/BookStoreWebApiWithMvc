@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using WebApi.Core.ActionAttributes;
+using WebApi.Core.Consts;
 using WebApi.Core.Models.Book;
 using WebApi.Core.RequestFilters.Book;
 using WebApi.Entity.Entities;
@@ -11,7 +13,6 @@ namespace BookStore.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
     public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -31,8 +32,8 @@ namespace BookStore.WebApi.Controllers
             return Ok(books.books);
         }
 
-        [HttpGet("[action]/{id:guid}")]
-        public async Task<IActionResult> Book([FromRoute] Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Books([FromRoute] Guid id)
         {
             var book = await _bookService.GetBookByGuidAsync(id);
             return Ok(book);
@@ -40,14 +41,16 @@ namespace BookStore.WebApi.Controllers
 
         [HttpPost("[action]")]
         [ValidateModelContent]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> Add([FromBody] BookAddDto bookDto)
         {
             var book = await _bookService.AddBookAsync(bookDto);
-            return CreatedAtAction(nameof(Book), new { id = book.Id }, book);
+            return CreatedAtAction(nameof(Books), new { id = book.Id }, book);
         }
 
         [HttpPost("[action]")]
         [ValidateModelContent]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> Update([FromBody] BookUpdateDto bookDto)
         {
             await _bookService.UpdateBookAsync(bookDto);
@@ -55,6 +58,7 @@ namespace BookStore.WebApi.Controllers
         }
 
         [HttpPost("[action]/{id:guid}")]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> SafeDelete([FromRoute] Guid id)
         {
             await _bookService.SafeDeleteBookAsync(id);

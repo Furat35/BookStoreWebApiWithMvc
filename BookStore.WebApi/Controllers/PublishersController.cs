@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WebApi.Core.ActionAttributes;
+using WebApi.Core.Consts;
 using WebApi.Core.Models.Publisher;
 using WebApi.Core.RequestFilters.Publisher;
 using WebApi.Service.Abstract;
@@ -10,7 +11,6 @@ namespace PublisherStore.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PublishersController : ControllerBase
     {
         private readonly IPublisherService _publisherService;
@@ -29,8 +29,8 @@ namespace PublisherStore.WebApi.Controllers
             return Ok(books.publishers);
         }
 
-        [HttpGet("[action]/{id:guid}")]
-        public async Task<IActionResult> Publisher([FromRoute] Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Publishers([FromRoute] Guid id)
         {
             var book = await _publisherService
                 .GetPublisherByGuidAsync(id);
@@ -39,15 +39,17 @@ namespace PublisherStore.WebApi.Controllers
 
         [HttpPost("[action]")]
         [ValidateModelContent]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> Add([FromBody] PublisherAddDto bookDto)
         {
             var publisher = await _publisherService
                 .AddPublisherAsync(bookDto);
-            return CreatedAtAction(nameof(Publisher), new { id = publisher.Id }, publisher);
+            return CreatedAtAction(nameof(Publishers), new { id = publisher.Id }, publisher);
         }
 
         [HttpPost("[action]")]
         [ValidateModelContent]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> Update([FromBody] PublisherUpdateDto bookDto)
         {
             await _publisherService
@@ -56,6 +58,7 @@ namespace PublisherStore.WebApi.Controllers
         }
 
         [HttpPost("[action]/{id:guid}")]
+        [Authorize(Roles = $"{RoleConsts.AdminRole}, {RoleConsts.EditorRole}")]
         public async Task<IActionResult> SafeDelete([FromRoute] Guid id)
         {
             await _publisherService

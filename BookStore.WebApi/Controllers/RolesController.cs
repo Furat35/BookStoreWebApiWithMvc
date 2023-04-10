@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebApi.Core.ActionAttributes;
+using WebApi.Core.Consts;
 using WebApi.Core.Models.AppRole;
 using WebApi.Service.Abstract;
 
@@ -7,6 +9,7 @@ namespace BookStore.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = $"{RoleConsts.AdminRole}")]
     public class RolesController : ControllerBase
     {
         private readonly IAppRoleService _roleService;
@@ -24,8 +27,8 @@ namespace BookStore.WebApi.Controllers
             return Ok(roles);
         }
 
-        [HttpGet("[action]/{id:guid}")]
-        public async Task<IActionResult> GetRole(Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Roles(Guid id)
         {
             var role = await _roleService
                 .GetRoleByGuid(id);
@@ -38,7 +41,7 @@ namespace BookStore.WebApi.Controllers
         {
             var role = await _roleService
                 .AddRoleAsync(entity);
-            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, role);
+            return CreatedAtAction(nameof(Roles), new { id = role.Id }, role);
         }
 
         [HttpPost("[action]")]

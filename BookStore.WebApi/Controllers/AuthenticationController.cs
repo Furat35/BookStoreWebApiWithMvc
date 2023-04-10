@@ -16,16 +16,15 @@ namespace BookStore.WebApi.Controllers
             _authService = authService;
         }
 
-        [HttpPost]
-        [Route("login")]
+
+        [HttpPost("[action]")]
         public async Task<IActionResult> Login([FromBody] LoginDto entity)
         {
             var result = await _authService.LoginAsync(entity);
             return Ok(result);
         }
 
-        [HttpPost]
-        [Route("register")]
+        [HttpPost("[action]")]
         public async Task<IActionResult> Register([FromBody] RegisterDto entity)
         {
             await _authService.RegisterAsync(entity);
