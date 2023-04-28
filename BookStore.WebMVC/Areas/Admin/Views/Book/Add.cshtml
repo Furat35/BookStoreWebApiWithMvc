@@ -1,0 +1,49 @@
+﻿@model BookAddDto
+@{
+    ViewData["ActiveNav"] = "Book";
+}
+
+
+<form asp-controller="Book" asp-action="Add" method="post" class="row justify-content-center mt-5" style="text-align:center;">
+    <div class="col-9">
+        <div class="row justify-content-center">
+            <label class="col-2 fw-5 text-start col-form-label" asp-for="Name">Name</label>
+            <div class="col-5">
+                <input class="form-control" asp-for="Name" />
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start form-label" asp-for="Summary">Summary</label>
+            <div class="col-5">
+                <textarea class="col-5 form-control" rows="3" asp-for="Summary"></textarea>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start col-form-label" asp-for="Page">Page</label>
+            <div class="col-5">
+                <input class="form-control" asp-for="Page" />
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start col-form-label">Author</label>
+            <div class="col-5">
+                <select class="form-control"  asp-items='new SelectList(Model.Authors, "Id", "FirstName")' asp-for="AuthorId">
+                </select>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start col-form-label">Publisher</label>
+            <div class="col-5">
+                <select class="form-control" asp-items='new SelectList(Model.Publishers, "Id", "PublisherName")' asp-for="PublisherId">
+                </select>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+            <div class="col-2">
+            </div>
+            <div class="col-5">
+                <button class="col-2 form-control fw-bold m-auto w-50" type="submit">Ekle</button>
+            </div>
+        </div>
+    </div>
+</form>

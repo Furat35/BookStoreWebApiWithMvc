@@ -1,0 +1,29 @@
+﻿<table class="table table-hover" style="width:100%">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Update</th>
+            <th scope="col">Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var genre in Model)
+        {
+            <tr>
+                <td>@genre.Name</td>
+                <td class="col p-0">
+                    <a asp-controller="Genre" asp-action="Update" asp-route-id="@genre.Id" title="Update" class="text-warning fw-bold d-inline-block text-center" style="width:90px;height:40px;">
+                        <i class="bi bi-arrow-up"></i>
+                    </a>
+                </td>
+                <td class="col p-0">
+                    <a asp-controller="Genre" asp-action="SafeDelete" asp-route-id="@genre.Id" title="Delete" class="text-danger fw-bold d-inline-block text-center" style="width:90px;height:40px;">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<partial name="~/Areas/Admin/Views/Shared/Partials/_Pagination.cshtml" />

@@ -1,0 +1,41 @@
+﻿@model List<BookDto>
+@{
+    ViewData["ActiveNav"] = "Book";
+}
+<div id="filters" class="text-end">
+        <span class="me-1">Show</span>
+        <select id="show" class="form-control d-inline-block me-5" style="width:50px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+        </select>
+</div>
+<div>
+    <a asp-controller="Book" asp-action="Add" title="Add" class="h-100 d-inline-block text-success"><i class="bi bi-file-plus" style="font-size:35px;"></i></a>
+</div>
+<div id="books">
+
+    <partial name="~/Areas/Admin/Views/Book/_GetBooks.cshtml" />
+
+</div>
+
+@section Scripts{
+    <script src="~/js/indexPagination.js"></script>
+    <script>
+        $(document).ready(function () {
+            var showEntities = 20;
+            $("body").on("click", "#filters #show", function () {
+                let selectElement = document.getElementById("show");
+                let valueSelected = selectElement.options[selectElement.selectedIndex].value;
+                let pageSize = selectElement.options[selectElement.selectedIndex].text;
+                if (showEntities != parseInt(pageSize)) {
+                    $.get("/Admin/Book/GetBooks?PageSize=" + pageSize,
+                        function (data, status) {
+                            $("#books").html(data);
+                        });
+                    showEntities = pageSize;
+                }
+            });
+        });
+    </script>
+}
+

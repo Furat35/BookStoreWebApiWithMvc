@@ -10,11 +10,30 @@ namespace BookStore.WebApi.Extensions.WebApi
 {
     public static class AddWebApiServices
     {
-        public static void AddWebApi(this IServiceCollection services)
+        public static void AddWebApi(this IServiceCollection services, IConfiguration configuration)
         {
+            #region Rate Limiting
+
+            //services.AddDistributedMemoryCache();
+            //services.AddMemoryCache();
+            //services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
+            //services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            //services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            //services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            //services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+            //services.AddInMemoryRateLimiting();
+
+            #endregion
+
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            services.AddControllers()
+            services.AddControllers(_ =>
+            {
+                _.RespectBrowserAcceptHeader = false;
+                _.ReturnHttpNotAcceptable = true;
+                //_.OutputFormatters.Add(new XmlSerializerOutputFormatter());
+            })
+                .AddXmlDataContractSerializerFormatters()
                 .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             services.Configure<ApiBehaviorOptions>(_ =>
             {
@@ -49,6 +68,24 @@ namespace BookStore.WebApi.Extensions.WebApi
 
         public static void UseWebApi(this WebApplication app, IServiceCollection services)
         {
+            #region Rate Limiting
+
+            //app.UseIpRateLimiting();
+
+            #endregion
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+            }
+
             #region Error Handling
 
             var logger = services.BuildServiceProvider().GetService<ILoggerService>();
@@ -70,7 +107,7 @@ namespace BookStore.WebApi.Extensions.WebApi
                             _ => StatusCodes.Status500InternalServerError
                         };
 
-                        logger.LogError($"Something went wrong: {contextFeature.Error}");
+                        logger.LogError($"Something went wrong: {contextFeature.Endpoint} == {contextFeature.Error}");
                         await context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails()
                         {
                             StatusCode = context.Response.StatusCode,
@@ -87,6 +124,13 @@ namespace BookStore.WebApi.Extensions.WebApi
             app.UseCors("CorsPolicyAllHosts");
 
             #endregion
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllers();
 
         }
     }

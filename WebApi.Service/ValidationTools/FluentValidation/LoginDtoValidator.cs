@@ -32,8 +32,8 @@ namespace WebApi.Service.ValidationTools.FluentValidation
                 .WithMessage("Şifre adı boş bırakılamaz!");
 
             RuleFor(_ => _.Password)
-                .MinimumLength(2)
-                .WithMessage("Şifre adı en az 2 karakterden oluşmalı!");
+                .MinimumLength(5)
+                .WithMessage("Şifre adı en az 5 karakterden oluşmalı!");
 
             RuleFor(_ => _.Password)
                 .MaximumLength(25)

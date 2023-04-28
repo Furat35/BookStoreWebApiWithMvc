@@ -16,11 +16,14 @@ namespace WebApi.Service.Concrete
 {
     public sealed class GenreService : IGenreService
     {
+        #region Fields
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IValidator<Genre> _validator;
         private readonly IRepository<Genre> _genreRepo;
+        #endregion
 
+        #region Ctor
         public GenreService(IUnitOfWork unitOfWork, IMapper mapper, IRepository<Genre> genreRepo, IValidator<Genre> validator)
         {
             _unitOfWork = unitOfWork;
@@ -28,39 +31,25 @@ namespace WebApi.Service.Concrete
             _validator = validator;
             _genreRepo = unitOfWork.GetRepository<Genre>();
         }
-
-        private async Task SaveGenreAsync()
-        {
-            int effectedRows;
-            try
-            {
-                effectedRows = await _unitOfWork.SaveAsync();
-            }
-            catch (Exception e)
-            {
-                throw new GenreInternalServerError500Exception(e.Message);
-            }
-
-            if (effectedRows != 1)
-                throw new GenreInternalServerError500Exception();
-        }
+        #endregion
 
         public async Task<(List<GenreDto> genres, Metadata metadata)> GetGenresAsync(Expression<Func<Genre, bool>> predicate = null,
-            GenreRequestFilter filters = null, bool trackChanges = false)
+            GenreRequestFilter filters = null)
         {
-            var genres = _genreRepo.GetAllAsync(predicate, trackChanges);
-            var filteredGenres = filters is not null
-                ? await genres
-                    .GetFilteredBooks(filters)
-                    .Skip((filters.Page - 1) * filters.PageSize)
-                    .Take(filters.PageSize).ToListAsync()
-                : await genres.ToListAsync();
+            var genres = _genreRepo
+                .GetAllAsync(predicate)
+                .GetFilteredBooks(filters);
+
+            var filteredGenres = await genres
+                .Skip((filters.Page - 1) * filters.PageSize)
+                .Take(filters.PageSize)
+                .ToListAsync();
 
             Metadata metadata = new Metadata()
             {
                 CurrentPage = filters.Page,
                 PageSize = filters.PageSize,
-                TotalPages = genres.Count() / filters.PageSize,
+                //TotalPages = genres.Count() / filters.PageSize,
                 TotalEntities = genres.Count()
             };
 
@@ -75,14 +64,6 @@ namespace WebApi.Service.Concrete
             return _mapper.Map<GenreDto>(genre);
         }
 
-        public async Task<GenreDto> GetFirstGenreAsync(Expression<Func<Genre, bool>> predicate, bool trackChanges = false)
-        {
-            var genre = await _genreRepo.GetFirstAsync(predicate, trackChanges);
-            return genre is not null
-            ? _mapper.Map<GenreDto>(genre)
-            : null;
-        }
-
         public async Task<GenreDto> AddGenreAsync(GenreAddDto entity)
         {
             var genre = _mapper.Map<Genre>(entity);
@@ -91,13 +72,6 @@ namespace WebApi.Service.Concrete
             await SaveGenreAsync();
 
             return _mapper.Map<GenreDto>(genre);
-        }
-
-        public async Task DeleteGenreAsync(Guid id)
-        {
-            var genre = await GenreExistsAsync(id);
-            _genreRepo.Delete(genre);
-            await SaveGenreAsync();
         }
 
         public async Task SafeDeleteGenreAsync(Guid id)
@@ -120,9 +94,21 @@ namespace WebApi.Service.Concrete
             await SaveGenreAsync();
         }
 
-        public async Task<int> CountGenresAsync(Expression<Func<Genre, bool>> predicate)
+        #region Private Methods
+        private async Task SaveGenreAsync()
         {
-            return await _genreRepo.CountAsync(predicate);
+            int effectedRows;
+            try
+            {
+                effectedRows = await _unitOfWork.SaveAsync();
+            }
+            catch (Exception e)
+            {
+                throw new GenreInternalServerError500Exception(e.Message);
+            }
+
+            if (effectedRows != 1)
+                throw new GenreInternalServerError500Exception();
         }
 
         private async Task GenreValidatorAsync(Genre genre)
@@ -140,5 +126,28 @@ namespace WebApi.Service.Concrete
 
             return genre;
         }
+        #endregion
+
+        #region Functions that can be needed later
+        //public async Task<GenreDto> GetFirstGenreAsync(Expression<Func<Genre, bool>> predicate, bool trackChanges = false)
+        //{
+        //    var genre = await _genreRepo.GetFirstAsync(predicate, trackChanges);
+        //    return genre is not null
+        //    ? _mapper.Map<GenreDto>(genre)
+        //    : null;
+        //}
+
+        //public async Task DeleteGenreAsync(Guid id)
+        //{
+        //    var genre = await GenreExistsAsync(id);
+        //    _genreRepo.Delete(genre);
+        //    await SaveGenreAsync();
+        //}
+
+        //public async Task<int> CountGenresAsync(Expression<Func<Genre, bool>> predicate)
+        //{
+        //    return await _genreRepo.CountAsync(predicate);
+        //}
+        #endregion
     }
 }

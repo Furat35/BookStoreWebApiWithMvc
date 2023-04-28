@@ -16,11 +16,14 @@ namespace WebApi.Service.Concrete
 {
     public sealed class AuthorService : IAuthorService
     {
+        #region Fields
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IValidator<Author> _validator;
         private readonly IRepository<Author> _authorRepo;
+        #endregion
 
+        #region Ctor
         public AuthorService(IUnitOfWork unitOfWork, IMapper mapper, IRepository<Author> authorRepo, IValidator<Author> validator)
         {
             _unitOfWork = unitOfWork;
@@ -28,36 +31,18 @@ namespace WebApi.Service.Concrete
             _validator = validator;
             _authorRepo = _unitOfWork.GetRepository<Author>();
         }
+        #endregion
 
-
-        private async Task SaveAuthorAsync()
+        public async Task<(List<AuthorDto> authors, Metadata metadata)> GetAuthorsAsync(
+            Expression<Func<Author, bool>> predicate = null, AuthorRequestFilter filters = null)
         {
-            int effectedRows;
-            try
-            {
-                effectedRows = await _unitOfWork.SaveAsync();
-            }
-            catch (Exception e)
-            {
-                throw new AuthorInternalServerError500Exception(e.Message);
-            }
-
-            if (effectedRows != 1)
-                throw new AuthorInternalServerError500Exception();
-        }
-
-        public async Task<(List<AuthorDto> authors, Metadata metadata)> GetAuthorsAsync(Expression<Func<Author, bool>> predicate = null
-            , AuthorRequestFilter filters = null, bool trackChanges = false)
-        {
-            var authors = _authorRepo.GetAllAsync(predicate, trackChanges);
-            var filteredAuthors = filters is not null
-                ? await authors
-                    .GetFilterAuthors(filters)
-                    .Skip((filters.Page - 1) * filters.PageSize)
-                    .Take(filters.PageSize)
-
-                    .ToListAsync()
-                : await authors.ToListAsync();
+            var authors = _authorRepo
+                .GetAllAsync(predicate)
+                .GetFilterAuthors(filters);
+            var filteredAuthors = await authors
+                .Skip((filters.Page - 1) * filters.PageSize)
+                .Take(filters.PageSize)
+                .ToListAsync();
 
             Metadata metadata = new Metadata()
             {
@@ -78,14 +63,6 @@ namespace WebApi.Service.Concrete
             return _mapper.Map<AuthorDto>(author);
         }
 
-        public async Task<AuthorDto> GetFirstAuthorAsync(Expression<Func<Author, bool>> predicate, bool trackChanges = false)
-        {
-            var author = await _authorRepo.GetFirstAsync(predicate, trackChanges);
-            return author is not null
-                ? _mapper.Map<AuthorDto>(author)
-                : null;
-        }
-
         public async Task<AuthorDto> AddAuthorAsync(AuthorAddDto entity)
         {
             var author = _mapper.Map<Author>(entity);
@@ -94,16 +71,6 @@ namespace WebApi.Service.Concrete
             await SaveAuthorAsync();
 
             return _mapper.Map<AuthorDto>(author);
-        }
-
-
-
-        public async Task DeleteAuthorAsync(Guid id)
-        {
-            var author = await AuthorExistsAsync(id: id);
-            author.IsDeleted = true;
-            _authorRepo.Update(author);
-            await SaveAuthorAsync();
         }
 
         public async Task SafeDeleteAuthorAsync(Guid id)
@@ -128,16 +95,30 @@ namespace WebApi.Service.Concrete
             await SaveAuthorAsync();
         }
 
-        public async Task<int> CountAuthorsAsync(Expression<Func<Author, bool>> predicate)
+        #region Private Methods
+        private async Task SaveAuthorAsync()
         {
-            return await _authorRepo.CountAsync(predicate);
+            int effectedRows;
+            try
+            {
+                effectedRows = await _unitOfWork.SaveAsync();
+            }
+            catch (Exception e)
+            {
+                throw new AuthorInternalServerError500Exception(e.Message);
+            }
+
+            if (effectedRows != 1)
+                throw new AuthorInternalServerError500Exception();
         }
+
         private async Task AuthorValidatorAsync(Author author)
         {
             var result = await _validator.ValidateAsync(author);
             if (!result.IsValid)
                 throw new UnprocessableAuthorException();
         }
+
         private async Task<Author> AuthorExistsAsync(Guid id)
         {
             var author = await _authorRepo.GetByGuidAsync(id);
@@ -146,5 +127,31 @@ namespace WebApi.Service.Concrete
 
             return author;
         }
+        #endregion
+
+        #region Functions that can be needed later
+        //public async Task DeleteAuthorAsync(Guid id)
+        //{
+        //    var author = await AuthorExistsAsync(id: id);
+        //    author.IsDeleted = true;
+        //    _authorRepo.Update(author);
+        //    await SaveAuthorAsync();
+        //}
+
+        //public async Task<AuthorDto> GetFirstAuthorAsync(Expression<Func<Author, bool>> predicate, bool trackChanges = false)
+        //{
+        //    var author = await _authorRepo
+        //        .GetFirstAsync(predicate, trackChanges);
+        //    return author is not null
+        //        ? _mapper.Map<AuthorDto>(author)
+        //        : null;
+        //}
+
+        //public async Task<int> CountAuthorsAsync(Expression<Func<Author, bool>> predicate)
+        //{
+        //    return await _authorRepo
+        //        .CountAsync(predicate);
+        //}
+        #endregion
     }
 }

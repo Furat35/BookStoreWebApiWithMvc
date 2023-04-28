@@ -1,0 +1,18 @@
+﻿@model List<AppUserDto>
+@{
+    ViewData["ActiveNav"] = "User";
+}
+
+<div>
+    <a asp-controller="User" asp-action="Add" title="Add" class="h-100 d-inline-block text-success"><i class="bi bi-file-plus" style="font-size:35px;"></i></a>
+</div>
+
+<div id="users">
+
+    <partial name="~/Areas/Admin/Views/User/_GetUsers.cshtml" />
+
+</div>
+
+@section Scripts{
+    <script src="~/js/indexPagination.js"></script>
+}

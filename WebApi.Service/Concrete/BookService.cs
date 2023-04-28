@@ -16,10 +16,15 @@ namespace WebApi.Service.Concrete
 {
     public sealed class BookService : IBookService
     {
+        #region Fields
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IValidator<Book> _validator;
         private readonly IRepository<Book> _bookRepo;
+        private readonly string _cacheName = $"{typeof(BookService).FullName}.{nameof(GetBooksAsync)}";
+        #endregion
+
+        #region Ctor
         public BookService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<Book> validator)
         {
             _unitOfWork = unitOfWork;
@@ -27,39 +32,22 @@ namespace WebApi.Service.Concrete
             _validator = validator;
             _bookRepo = _unitOfWork.GetRepository<Book>();
         }
-
-
-        private async Task SaveBookAsync()
-        {
-            int effectedRows;
-            try
-            {
-                effectedRows = await _unitOfWork.SaveAsync();
-            }
-            catch (Exception e)
-            {
-                throw new BookInternalServerError500Exception(e.Message);
-            }
-
-            if (effectedRows != 1)
-                throw new BookInternalServerError500Exception();
-        }
+        #endregion 
 
         public async Task<(List<BookDto> books, Metadata metadata)> GetBooksAsync(
-            Expression<Func<Book, bool>> predicate = null, BookRequestFilter filters = null, bool trackChanges = false)
+            Expression<Func<Book, bool>> predicate = null, BookRequestFilter filters = null)
         {
+            var books = _bookRepo.GetAllAsync(predicate)
+                .Include(_ => _.Author)
+                .Include(_ => _.Publisher)
+                .Include(_ => _.BookGenres)
+                .GetFilteredBooks(filters);
 
-            var books = _bookRepo.GetAllAsync(predicate, trackChanges);
-            //.Include(_ => _.Author)
-            //.Include(_ => _.Publisher)
-            //.Include(_ => _.BookGenres);
 
-            var filteredBooks = filters is not null
-                ? await books
-                    .GetFilteredBooks(filters)
-                    .Skip((filters.Page - 1) * filters.PageSize)
-                    .Take(filters.PageSize).ToListAsync()
-                : await books.ToListAsync();
+            var filteredBooks = await books
+                .Skip((filters.Page - 1) * filters.PageSize)
+                .Take(filters.PageSize)
+                .ToListAsync();
 
             Metadata metadata = new Metadata()
             {
@@ -69,27 +57,21 @@ namespace WebApi.Service.Concrete
                 TotalEntities = books.Count()
             };
 
-            return filteredBooks is not null
+            var response = filteredBooks != null
                 ? (_mapper.Map<List<BookDto>>(filteredBooks), metadata)
                 : (null, metadata);
+
+            return response;
         }
 
         public async Task<BookDto> GetBookByGuidAsync(Guid id)
         {
             var book = await BookExistsAsync(id);
-
             book.Author = await _unitOfWork.GetRepository<Author>().GetByGuidAsync(book.AuthorId);
             book.Publisher = await _unitOfWork.GetRepository<Publisher>().GetByGuidAsync(book.PublisherId);
             book.BookGenres = await _unitOfWork.GetRepository<BookGenre>().GetAllAsync(_ => _.BookId == id).ToListAsync();
-            return _mapper.Map<BookDto>(book);
-        }
 
-        public async Task<BookDto> GetFirstBookAsync(Expression<Func<Book, bool>> predicate, bool trackChanges = false)
-        {
-            var book = await _bookRepo.GetFirstAsync(predicate, trackChanges);
-            return book is null
-                ? _mapper.Map<BookDto>(book)
-                : null;
+            return _mapper.Map<BookDto>(book);
         }
 
         public async Task<BookDto> AddBookAsync(BookAddDto entity)
@@ -100,13 +82,6 @@ namespace WebApi.Service.Concrete
             await SaveBookAsync();
 
             return _mapper.Map<BookDto>(book);
-        }
-
-        public async Task DeleteBookAsync(Guid id)
-        {
-            var book = await BookExistsAsync(id);
-            _bookRepo.Delete(book);
-            await SaveBookAsync();
         }
 
         public async Task SafeDeleteBookAsync(Guid id)
@@ -122,15 +97,26 @@ namespace WebApi.Service.Concrete
             var map = _mapper.Map<Book>(entity);
             await BookValidatorAsync(map);
             var book = await BookExistsAsync(entity.Id);
-
             _mapper.Map(entity, book);
             _bookRepo.Update(book);
             await SaveBookAsync();
         }
 
-        public async Task<int> CountBooksAsync(Expression<Func<Book, bool>> predicate)
+        #region Private Methods
+        private async Task SaveBookAsync()
         {
-            return await _bookRepo.CountAsync(predicate);
+            int effectedRows;
+            try
+            {
+                effectedRows = await _unitOfWork.SaveAsync();
+            }
+            catch (Exception e)
+            {
+                throw new BookInternalServerError500Exception(e.Message);
+            }
+
+            if (effectedRows != 1)
+                throw new BookInternalServerError500Exception();
         }
 
         private async Task BookValidatorAsync(Book book)
@@ -148,5 +134,29 @@ namespace WebApi.Service.Concrete
 
             return book;
         }
+        #endregion
+
+        #region Functions that can be needed later
+        //public async Task<BookDto> GetFirstBookAsync(Expression<Func<Book, bool>> predicate, bool trackChanges = false)
+        //{
+        //    var book = await _bookRepo.GetFirstAsync(predicate, trackChanges);
+        //    return book is null
+        //        ? _mapper.Map<BookDto>(book)
+        //        : null;
+        //}
+
+        //public async Task DeleteBookAsync(Guid id)
+        //{
+        //    var book = await BookExistsAsync(id);
+        //    _bookRepo.Delete(book);
+        //    await SaveBookAsync();
+        //}
+
+        //public async Task<int> CountBooksAsync(Expression<Func<Book, bool>> predicate)
+        //{
+        //    return await _bookRepo
+        //        .CountAsync(predicate);
+        //}
+        #endregion
     }
 }

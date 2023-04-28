@@ -47,7 +47,9 @@
             }
             set
             {
-                _totalPages = value < 1 ? _pageSize : value;
+                _totalPages = value == 0
+                    ? 1
+                    : value;
             }
         }
 
@@ -63,8 +65,8 @@
             }
         }
 
-        public bool HasNext => CurrentPage < PageSize;
+        public bool HasNext => CurrentPage < TotalPages;
 
-        public bool HasPrevioues => CurrentPage > 1;
+        public bool HasPrevious => CurrentPage > 1;
     }
 }

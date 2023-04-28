@@ -1,8 +1,17 @@
 ﻿namespace WebApi.Core.Models.AppRole
 {
-    public class AppRoleDto
+    public record AppRoleDto
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
+        public AppRoleDto()
+        {
+
+        }
+
+        public AppRoleDto(string name)
+        {
+            Name = name;
+        }
+        public Guid Id { get; init; }
+        public string Name { get; init; }
     }
 }

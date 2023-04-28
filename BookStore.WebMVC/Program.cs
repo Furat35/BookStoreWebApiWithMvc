@@ -1,8 +1,10 @@
+using BookStore.WebMVC.Extensions.WebMvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddHttpClient();
+
+builder.Services.AddWebService();
 
 var app = builder.Build();
 
@@ -19,10 +21,20 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+//app.UseStatusCodePagesWithRedirects();
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapAreaControllerRoute(
+        name: "AdminPanel",
+        areaName: "Admin",
+        pattern: "{area:exists}/{controller=Book}/{action=Index}/{id?}"
+    );
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Book}/{action=Index}/{id?}"
+    );
+});
 
 app.Run();

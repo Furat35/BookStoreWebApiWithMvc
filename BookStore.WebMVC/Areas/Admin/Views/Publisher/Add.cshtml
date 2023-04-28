@@ -1,0 +1,22 @@
+﻿@model PublisherAddDto
+@{
+    ViewData["ActiveNav"] = "Publisher";
+}
+
+<form asp-controller="Publisher" asp-action="Add" method="post" class="row justify-content-center mt-5" style="text-align:center;">
+    <div class="col-9">
+        <div class="row justify-content-center">
+            <label class="col-2 fw-5 text-start col-form-label" asp-for="PublisherName">Publisher</label>
+            <div class="col-5">
+                <input class="form-control" asp-for="PublisherName" />
+            </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+            <div class="col-2">
+            </div>
+            <div class="col-5">
+                <button class="col-2 form-control fw-bold m-auto w-50" type="submit">Ekle</button>
+            </div>
+        </div>
+    </div>
+</form>

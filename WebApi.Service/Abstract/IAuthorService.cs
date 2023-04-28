@@ -8,13 +8,13 @@ namespace WebApi.Service.Abstract
 {
     public interface IAuthorService
     {
-        Task<(List<AuthorDto> authors, Metadata metadata)> GetAuthorsAsync(Expression<Func<Author, bool>> predicate = null, AuthorRequestFilter filters = null, bool trackChanges = false);
+        Task<(List<AuthorDto> authors, Metadata metadata)> GetAuthorsAsync(Expression<Func<Author, bool>> predicate = null, AuthorRequestFilter filters = null);
         Task<AuthorDto> GetAuthorByGuidAsync(Guid id);
-        Task<AuthorDto> GetFirstAuthorAsync(Expression<Func<Author, bool>> predicate, bool trackChanges = false);
         Task<AuthorDto> AddAuthorAsync(AuthorAddDto entity);
-        Task DeleteAuthorAsync(Guid id);
         Task SafeDeleteAuthorAsync(Guid id);
         Task UpdateAuthorAsync(AuthorUpdateDto entity);
-        Task<int> CountAuthorsAsync(Expression<Func<Author, bool>> predicate);
+        //Task<AuthorDto> GetFirstAuthorAsync(Expression<Func<Author, bool>> predicate, bool trackChanges = false);
+        //Task DeleteAuthorAsync(Guid id);
+        //Task<int> CountAuthorsAsync(Expression<Func<Author, bool>> predicate);
     }
 }

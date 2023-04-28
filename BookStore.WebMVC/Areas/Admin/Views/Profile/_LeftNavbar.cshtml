@@ -1,0 +1,6 @@
+﻿<div class="col-2">
+    <ul class="list-group" id="leftNavbar">
+        <li class="list-group-item @(ViewData["Profile"] == "Index" ? "active" : null) p-0"><a asp-action="Index" style="color:black;" class="d-block p-2 fw-bold">Profile</a></li>
+        <li class="list-group-item @(ViewData["Profile"] == "Account" ? "active" : null) p-0"><a asp-action="Account" style="color:black;" class="d-block p-2 fw-bold">Account</a></li>
+    </ul>
+</div>

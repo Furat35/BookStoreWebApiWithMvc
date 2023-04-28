@@ -1,0 +1,22 @@
+﻿@model AppRoleAddDto
+@{
+    ViewData["ActiveNav"] = "Role";
+}
+
+<form asp-controller="Role" asp-action="Add" method="post" class="row justify-content-center mt-5" style="text-align:center;">
+    <div class="col-9">
+        <div class="row justify-content-center">
+            <label class="col-2 fw-5 text-start col-form-label" asp-for="Name">Role</label>
+            <div class="col-5">
+                <input class="form-control" asp-for="Name" />
+            </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+            <div class="col-2">
+            </div>
+            <div class="col-5">
+                <button class="w-50 form-control m-auto fw-bold" type="submit">Ekle</button>
+            </div>
+        </div>
+    </div>
+</form>

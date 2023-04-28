@@ -1,0 +1,18 @@
+﻿@model List<AuthorDto>
+@{
+    ViewData["ActiveNav"] = "Author";
+}
+
+<div>
+    <a asp-controller="Author" asp-action="Add" title="Add" class="h-100 d-inline-block text-success"><i class="bi bi-file-plus" style="font-size:35px;"></i></a>
+</div>
+<div id="authors">
+
+    <partial name="~/Areas/Admin/Views/Author/_GetAuthors.cshtml" />
+
+</div>
+
+@section Scripts{
+    <script src="~/js/indexPagination.js"></script>
+}
+

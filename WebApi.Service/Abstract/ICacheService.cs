@@ -1,9 +1,10 @@
 ﻿namespace WebApi.Service.Abstract
 {
-    public interface ICacheService<T>
+    public interface ICacheService
     {
-        public void TryAdd(string key, T value);
-        public T TryGet(string key);
+        public void Add(string key, object value);
+        public object Get(string key);
         public void Remove(string key);
+        public bool Exists(string key);
     }
 }

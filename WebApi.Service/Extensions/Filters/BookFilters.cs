@@ -7,6 +7,9 @@ namespace WebApi.Service.Extensions.Filters
     {
         public static IQueryable<Book> GetFilteredBooks(this IQueryable<Book> books, BookRequestFilter filters)
         {
+            if (filters is null)
+                return books;
+
             if (filters.MaxPage < filters.MinPage)
             {
                 filters.MaxPage = null;

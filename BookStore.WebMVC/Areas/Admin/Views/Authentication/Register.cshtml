@@ -1,0 +1,35 @@
+﻿@model RegisterDto
+@{
+    ViewData["ActiveNav"] = "Book";
+}
+
+<form asp-controller="Authentication" asp-action="Register" method="post" class="row justify-content-center mt-5" style="text-align:center;">
+    <div class="col-9">
+        <div class="row justify-content-center">
+            <label class="col-2 fw-5 text-start col-form-label" asp-for="UserName">UserName</label>
+            <div class="col-5">
+                <input class="form-control" asp-for="UserName" />
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start form-label" asp-for="Email">Email</label>
+            <div class="col-5">
+                <textarea class="col-5 form-control" rows="3" asp-for="Email"></textarea>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <label class="col-2 fw-5 text-start form-label" asp-for="Password">Password</label>
+            <div class="col-5">
+                <textarea class="col-5 form-control" rows="3" asp-for="Password"></textarea>
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-5">
+            <div class="col-2">
+            </div>
+            <div class="col-5">
+                <button class="col-2 form-control fw-bold m-auto w-50" type="submit">Register</button>
+            </div>
+        </div>
+    </div>
+</form>

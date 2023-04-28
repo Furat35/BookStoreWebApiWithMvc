@@ -5,33 +5,48 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using WebApi.Core.Exceptions.AppRole;
 using WebApi.Core.Models.AppRole;
+using WebApi.Core.RequestFilters;
+using WebApi.Core.RequestFilters.Role;
 using WebApi.Entity.Entities;
 using WebApi.Service.Abstract;
 
 namespace WebApi.Service.Concrete
 {
-    public class AppRoleService : IAppRoleService
+    public sealed class AppRoleService : IAppRoleService
     {
+        #region Fields
         private readonly RoleManager<AppRole> _roleManager;
         private readonly IMapper _mapper;
         private readonly IValidator<AppRole> _validator;
+        #endregion
 
+        #region Ctor
         public AppRoleService(RoleManager<AppRole> roleManager, IMapper mapper, IValidator<AppRole> validator)
         {
             _roleManager = roleManager;
             _mapper = mapper;
             _validator = validator;
         }
+        #endregion
 
-        public async Task<IList<AppRoleDto>> GetRolesAsync(Expression<Func<AppRole, bool>> predicate = null)
+        public async Task<(List<AppRoleDto> roles, Metadata metadata)> GetRolesAsync(Expression<Func<AppRole, bool>> predicate = null, RoleRequestFilter filters = null)
         {
-            var roles = await _roleManager.Roles
-                .AsNoTracking()
-                .Where(predicate)
-                .ToListAsync();
+            var roles = _roleManager
+                .Roles
+                .AsNoTracking();
+            if (predicate is not null)
+                roles.Where(predicate);
+
+            Metadata metadata = new Metadata()
+            {
+                CurrentPage = filters.Page,
+                PageSize = filters.PageSize,
+                //TotalPages = publishers.Count() / filters.PageSize,
+                TotalEntities = roles.Count()
+            };
             return roles is not null
-            ? _mapper.Map<List<AppRoleDto>>(roles)
-            : null;
+            ? (_mapper.Map<List<AppRoleDto>>(await roles.ToListAsync()), metadata)
+            : (null, metadata);
         }
 
         public async Task<AppRoleDto> GetRoleByNameAsync(string roleName)
@@ -64,7 +79,7 @@ namespace WebApi.Service.Concrete
             return _mapper.Map<AppRoleDto>(role);
         }
 
-        public async Task DeleteRoleAsync(Guid id)
+        public async Task SafeDeleteRoleAsync(Guid id)
         {
             var role = await RoleExistsAsync(id: id);
             role.IsDeleted = true;
@@ -85,6 +100,7 @@ namespace WebApi.Service.Concrete
                 throw new AppRoleInternalServerError500Exception($"Error occured while trying to update role : {role.Name}");
         }
 
+        #region Private Methods
         private async Task<AppRole> RoleExistsAsync(Guid id)
         {
             var role = await _roleManager.FindByIdAsync(id.ToString());
@@ -100,5 +116,6 @@ namespace WebApi.Service.Concrete
             if (!result.IsValid)
                 throw new UnprocessableAppRoleException();
         }
+        #endregion
     }
 }

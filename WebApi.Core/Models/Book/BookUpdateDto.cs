@@ -1,4 +1,5 @@
-﻿using WebApi.Core.Models.BookGenre;
+﻿using WebApi.Core.Models.Author;
+using WebApi.Core.Models.Publisher;
 
 namespace WebApi.Core.Models.Book
 {
@@ -13,7 +14,8 @@ namespace WebApi.Core.Models.Book
         public string Summary { get; init; }
         public short Page { get; init; }
         public Guid AuthorId { get; init; }
+        public ICollection<AuthorDto> Authors { get; set; }
         public Guid PublisherId { get; init; }
-        public ICollection<BookGenreDto>? BookGenres { get; set; }
+        public ICollection<PublisherDto> Publishers { get; set; }
     }
 }

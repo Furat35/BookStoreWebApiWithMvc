@@ -1,0 +1,40 @@
+﻿@using WebApi.Core.Consts;
+@{
+    string activeNav = ViewData["ActiveNav"]?.ToString();
+}
+
+<div class="container" id="header">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+            <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+            <span class="fs-4">Book Store</span>
+        </a>
+        <ul class="nav nav-pills">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <li class="nav-item"><a asp-area="Admin" asp-controller="book" asp-action="Index" class="nav-link @(activeNav == "Book" ? "active" : null)">Book</a></li>
+                <li class="nav-item"><a asp-area="Admin" asp-controller="author" asp-action="Index" class="nav-link @(activeNav == "Author" ? "active" : null)">Author</a></li>
+                <li class="nav-item"><a asp-area="Admin" asp-controller="genre" asp-action="Index" class="nav-link @(activeNav == "Genre" ? "active" : null)">Genre</a></li>
+                <li class="nav-item"><a asp-area="Admin" asp-controller="publisher" asp-action="Index" class="nav-link @(activeNav == "Publisher" ? "active" : null)">Publisher</a></li>
+                if (User.IsInRole(RoleConsts.AdminRole) || User.IsInRole(RoleConsts.EditorRole))
+                {
+                    if (User.IsInRole(RoleConsts.AdminRole))
+                    {
+                        <li class="nav-item"><a asp-area="Admin" asp-controller="role" asp-action="Index" class="nav-link @(activeNav == "Role" ? "active" : null)">Role</a></li>
+                    }
+                    <li class="nav-item"><a asp-area="Admin" asp-controller="user" asp-action="Index" class="nav-link @(activeNav == "User" ? "active" : null)">User</a></li>
+
+                }
+                <li class="nav-item"><a asp-area="Admin" asp-controller="Profile" asp-action="Index" class="nav-link"><strong style="text-decoration:underline;" class="text-black">@User.Identity.Name</strong></a></li>
+                <li class="nav-item ms-5"><a asp-area="Admin" asp-controller="Authentication" asp-action="Logout" class="nav-link text-danger"><strong>Logout</strong></a></li>
+            }
+            else
+            {
+                <li class="nav-item"><a asp-area="Admin" asp-controller="Authentication" asp-action="Login" class="nav-link">Login</a></li>
+                <li class="nav-item"><a asp-area="Admin" asp-controller="Authentication" asp-action="Register" class="nav-link">Register</a></li>
+            }
+        </ul>
+    </header>
+</div>
+
+

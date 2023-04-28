@@ -1,0 +1,20 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <partial name="~/Areas/Admin/Views/Shared/LayoutPartials/_HeadPartial.cshtml" />
+
+</head>
+<body>
+    <partial name="~/Areas/Admin/Views/Shared/LayoutPartials/_HeaderNavbarPartial.cshtml" />
+
+    <div class="container">
+        @RenderBody()
+    </div>
+
+    <partial name="~/Areas/Admin/Views/Shared/LayoutPartials/_FooterPartial.cshtml" />
+
+    <partial name="~/Areas/Admin/Views/Shared/LayoutPartials/_ScriptsPartial.cshtml" />
+
+    @RenderSection("Scripts",false)
+</body>
+</html>

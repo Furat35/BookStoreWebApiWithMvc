@@ -5,19 +5,24 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using WebApi.Core.Exceptions.AppUser;
 using WebApi.Core.Models.AppUser;
+using WebApi.Core.RequestFilters;
+using WebApi.Core.RequestFilters.User;
 using WebApi.Entity.Entities;
 using WebApi.Service.Abstract;
 using static WebApi.Core.Consts.RoleConsts;
 
 namespace WebApi.Service.Concrete
 {
-    public class AppUserService : IAppUserService
+    public sealed class AppUserService : IAppUserService
     {
+        #region Fields
         private readonly UserManager<AppUser> _userManager;
         private readonly IAppRoleService _roleService;
         private readonly IValidator<AppUser> _validator;
         private readonly IMapper _mapper;
+        #endregion
 
+        #region Ctor
         public AppUserService(UserManager<AppUser> userManager, IMapper mapper, IAppRoleService roleService
             , IValidator<AppUser> validator)
         {
@@ -26,34 +31,25 @@ namespace WebApi.Service.Concrete
             _roleService = roleService;
             _validator = validator;
         }
+        #endregion
+
         public async Task<AppUserDto> AddUserAsync(AppUserAddDto entity)
         {
             var map = _mapper.Map<AppUser>(entity);
             await AppUserValidatorAsync(map);
-            var userExists = await _userManager.FindByNameAsync(entity.UserName);
+            var userExists = await _userManager
+                .FindByNameAsync(entity.UserName);
             if (userExists is not null)
                 throw new AppUserAlreadyExistsException(entity.UserName);
 
             var user = _mapper.Map<AppUser>(entity);
-            var result = await _userManager.CreateAsync(user, entity.Password);
-            if (!result.Succeeded)
-                throw new AppUserInternalServerError500Exception($"Error occured while trying to create user : {entity.UserName}");
-
-            var roleResult = await _userManager.AddToRoleAsync(user, UserRole);
+            await CreateUserAsync(user, entity.Password);
+            var roleResult = await _userManager
+                .AddToRoleAsync(user, UserRole);
             if (!roleResult.Succeeded)
                 throw new AppUserInternalServerError500Exception();
 
             return _mapper.Map<AppUserDto>(user);
-        }
-
-        public async Task AddToRoleAsync(Guid id, string roleName)
-        {
-            var role = await _roleService.GetRoleByNameAsync(roleName);
-            var user = await UserExists(id: id);
-            var result = await _userManager.AddToRoleAsync(user, role.Name);
-
-            if (!result.Succeeded)
-                throw new AppUserInternalServerError500Exception($"Error occured while trying to add role to user : {id}");
         }
 
         public async Task UpdateUserAsync(AppUserUpdateDto entity)
@@ -62,21 +58,16 @@ namespace WebApi.Service.Concrete
             await AppUserValidatorAsync(map);
             var user = await UserExists(id: entity.Id);
             _mapper.Map(entity, user);
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded)
-                throw new AppUserInternalServerError500Exception($"Error occured while trying to update user : {entity.UserName}");
+            await UpdateUserAsync(user);
         }
 
-        public async Task DeleteUserAsync(Guid id)
+        public async Task SafeDeleteUserAsync(Guid id)
         {
             var user = await UserExists(id: id);
             if (!user.IsDeleted)
             {
                 user.IsDeleted = true;
-                var result = await _userManager.UpdateAsync(user);
-                if (!result.Succeeded)
-                    throw new AppUserInternalServerError500Exception($"Error occured while trying to delete user : {user.UserName}");
+                await UpdateUserAsync(user);
             }
         }
 
@@ -86,15 +77,26 @@ namespace WebApi.Service.Concrete
             return _mapper.Map<AppUserDto>(user);
         }
 
-        public async Task<IList<AppUserDto>> GetUsersAsync(Expression<Func<AppUser, bool>> predicate = null)
+        public async Task<(List<AppUserDto> users, Metadata metadata)> GetUsersAsync(
+            Expression<Func<AppUser, bool>> predicate = null, UserRequestFilter filters = null)
         {
-            var users = _userManager.Users.AsNoTracking();
+            var users = _userManager
+                .Users
+                .AsNoTracking();
             if (predicate != null)
                 users = users.Where(predicate);
 
+            Metadata metadata = new Metadata()
+            {
+                CurrentPage = filters.Page,
+                PageSize = filters.PageSize,
+                //TotalPages = publishers.Count() / filters.PageSize,
+                TotalEntities = users.Count()
+            };
+
             return users is not null
-            ? _mapper.Map<List<AppUserDto>>(await users.ToListAsync())
-            : null;
+            ? (_mapper.Map<List<AppUserDto>>(await users.ToListAsync()), metadata)
+            : (null, metadata);
         }
 
         public async Task<AppUserDto> GetFirstUserAsync(Expression<Func<AppUser, bool>> predicate)
@@ -108,17 +110,38 @@ namespace WebApi.Service.Concrete
                 : null;
         }
 
-        public async Task<int> CountUsersAsync(Expression<Func<AppUser, bool>> predicate)
+        #region Private Methods
+        private async Task AddToRoleAsync(Guid id, string roleName)
         {
-            return await _userManager.Users
-                .Where(predicate)
-                .AsNoTracking()
-                .CountAsync();
+            var role = await _roleService
+                .GetRoleByNameAsync(roleName);
+            var user = await UserExists(id: id);
+            var result = await _userManager
+                .AddToRoleAsync(user, role.Name);
+
+            if (!result.Succeeded)
+                throw new AppUserInternalServerError500Exception($"Error occured while trying to add role to user : {id}");
+        }
+
+        private async Task UpdateUserAsync(AppUser user)
+        {
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new AppUserInternalServerError500Exception($"Error occured while trying to delete user : {user.UserName}");
+        }
+
+        private async Task CreateUserAsync(AppUser user, string password)
+        {
+            var result = await _userManager
+                .CreateAsync(user, password);
+            if (!result.Succeeded)
+                throw new AppUserInternalServerError500Exception($"Error occured while trying to create user : {user.UserName}");
         }
 
         private async Task<AppUser> UserExists(Guid id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _userManager
+                .FindByIdAsync(id.ToString());
             if (user is null)
                 throw new AppUserNotFoundException(id.ToString());
 
@@ -131,5 +154,16 @@ namespace WebApi.Service.Concrete
             if (!result.IsValid)
                 throw new UnprocessableAppUserException();
         }
+        #endregion
+
+        #region Methods that can be needed later
+        //public async Task<int> CountUsersAsync(Expression<Func<AppUser, bool>> predicate)
+        //{
+        //    return await _userManager.Users
+        //        .Where(predicate)
+        //        .AsNoTracking()
+        //        .CountAsync();
+        //}
+        #endregion
     }
 }

@@ -15,16 +15,13 @@ namespace WebApi.DataAccess.Concrete
             _context = context;
         }
 
-        public IQueryable<T> GetAllAsync(Expression<Func<T, bool>> predicate = null, bool trackChanges = false)
+        public IQueryable<T> GetAllAsync(
+            Expression<Func<T, bool>> predicate = null)
         {
             var dataSet = _context.Set<T>();
             return predicate is null
-                ? (trackChanges
-                    ? dataSet
-                    : dataSet.AsNoTracking())
-                : (trackChanges
-                    ? dataSet.Where(predicate)
-                    : dataSet.AsNoTracking().Where(predicate));
+                ? dataSet.AsNoTracking()
+                : dataSet.AsNoTracking().Where(predicate);
         }
 
         public async Task<T> GetByGuidAsync(Guid id)
@@ -32,9 +29,11 @@ namespace WebApi.DataAccess.Concrete
             return await _context.FindAsync<T>(id);
         }
 
-        public async Task<T> GetFirstAsync(Expression<Func<T, bool>> predicate, bool trackChanges = false)
+        public async Task<T> GetFirstAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _context.Set<T>().Where(predicate).FirstOrDefaultAsync();
+            return await _context.Set<T>()
+                .Where(predicate)
+                .FirstOrDefaultAsync();
         }
 
         public void Add(T entity)

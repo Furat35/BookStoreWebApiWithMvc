@@ -20,6 +20,8 @@ namespace WebApi.Service.Extensions.Service
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAppRoleService, AppRoleService>();
             services.AddScoped<IAppUserService, AppUserService>();
+            services.AddScoped<ICacheService, CacheService>();
+            services.AddScoped<IProfileService, ProfileService>();
 
             #endregion
 

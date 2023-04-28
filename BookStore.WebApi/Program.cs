@@ -15,31 +15,13 @@ try
     builder.Host.UseNLog();
     #endregion
 
-    builder.Services.AddWebApi();
+    builder.Services.AddWebApi(builder.Configuration);
     builder.Services.AddDataAccess(builder.Configuration);
     builder.Services.AddService();
 
     var app = builder.Build();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    if (!app.Environment.IsDevelopment())
-    {
-        app.UseHsts();
-    }
-
     app.UseWebApi(builder.Services);
-    app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
 
     app.Run();
 

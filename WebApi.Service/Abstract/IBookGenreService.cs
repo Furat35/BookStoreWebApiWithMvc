@@ -9,9 +9,9 @@ namespace WebApi.Service.Abstract
     public interface IBookGenreService
     {
         Task<(List<BookGenreDto>, Metadata metadata)> GetBookGenresAsync(
-            Expression<Func<BookGenre, bool>> predicate = null, BookGenreRequestFilter filters = null, bool trackChanges = false);
+            Expression<Func<BookGenre, bool>> predicate = null, BookGenreRequestFilter filters = null);
         Task<BookGenreDto> GetBookGenreByGuidAsync(Guid id);
-        Task<BookGenreDto> GetFirstBookGenreAsync(Expression<Func<BookGenre, bool>> predicate, bool trackChanges = false);
+        Task<BookGenreDto> GetFirstBookGenreAsync(Expression<Func<BookGenre, bool>> predicate);
         Task<BookGenreDto> AddBookGenreAsync(BookGenreAddDto entity);
         Task DeleteBookGenreAsync(Guid id);
         Task SafeDeleteBookGenreAsync(Guid id);

@@ -1,0 +1,46 @@
+﻿<div id="paging" style="margin-top:70px;" class="row justify-content-center">
+    <nav aria-label="..." class="col-6 text-center">
+        <ul class="pagination justify-content-center">
+            @{
+                int totalPages = (int)ViewBag.metadata.TotalPages;
+                int currentPage = (int)ViewBag.metadata.CurrentPage;
+                bool hasNext = (bool)ViewBag.metadata.HasNext;
+                bool hasPrevious = (bool)ViewBag.metadata.HasPrevious;
+                int isLast = currentPage > totalPages - 5 ? totalPages - 5 : currentPage;
+                int count = currentPage > totalPages - 5 ? totalPages : currentPage + 5;
+                if(totalPages < 5)
+                {
+                    count = totalPages + 1;
+                    isLast = 1;
+                }
+            }
+
+            <li class="page-item @(hasPrevious == false ? "disabled" : null)">
+                <button  type="button" class="page-link" value="@(currentPage - 1)">Previous</button>
+            </li>
+
+            @if (currentPage > 5)
+            {
+                <li class="page-item">
+                    <button type="button" class="page-link" value="1">...</button>
+                </li>
+            }
+            @for (int i = isLast; i < count; i++)
+            {
+                <li class="page-item @(currentPage == i ? "disabled" : null)">
+                    <button type="button" class="page-link" value="@i">@i </button>
+                </li>
+            }
+            @if (currentPage < totalPages - 5)
+            {
+                <li class="page-item">
+                    <button type="button" class="page-link" value="@(totalPages - 5)">...</button>
+                </li>
+            }
+
+            <li class="page-item @(hasNext == true ? null : "disabled")">
+                <button type="button" class="page-link" value="@(currentPage + 1)">Next</button>
+            </li>
+        </ul>
+    </nav>
+</div>

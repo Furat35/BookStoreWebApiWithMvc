@@ -1,0 +1,35 @@
+﻿<table class="table table-hover" style="width:100%">
+    <thead>
+        <tr>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">Phone</th>
+            <th scope="col">E-Mail</th>
+            <th scope="col">Update</th>
+            <th scope="col">Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var author in Model)
+        {
+            <tr style="height:40px;">
+                <td class="col">@author.FirstName</td>
+                <td class="col">@author.LastName</td>
+                <td class="col">@author.Phone</td>
+                <td class="col">@author.Mail</td>
+                <td class="col p-0">
+                    <a asp-controller="Author" asp-action="Update" asp-route-id="@author.Id" title="Update" class="text-center d-inline-block text-warning" style="width:90px;height:40px;">
+                        <i class="bi bi-arrow-up"></i>
+                    </a>
+                </td>
+                <td class="col p-0">
+                    <a asp-controller="Author" asp-action="SafeDelete" asp-route-id="@author.Id" title="Delete" class="text-center d-inline-block text-danger" style="width:90px;height:40px;">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<partial name="~/Areas/Admin/Views/Shared/Partials/_Pagination.cshtml" />

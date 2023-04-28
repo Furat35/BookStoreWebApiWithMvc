@@ -1,8 +1,17 @@
 ﻿namespace WebApi.Core.Models.Authentication
 {
-    public class LoginDto
+    public record LoginDto
     {
-        public string UserName { get; set; }
-        public string Password { get; set; }
+        public LoginDto()
+        {
+
+        }
+        public LoginDto(string userName, string password)
+        {
+            UserName = userName;
+            Password = password;
+        }
+        public string UserName { get; init; }
+        public string Password { get; init; }
     }
 }

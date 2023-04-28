@@ -4,9 +4,9 @@ namespace WebApi.DataAccess.Abstract
 {
     public interface IRepository<T>
     {
-        IQueryable<T> GetAllAsync(Expression<Func<T, bool>> predicate = null, bool trackChanges = false);
+        IQueryable<T> GetAllAsync(Expression<Func<T, bool>> predicate = null);
         Task<T> GetByGuidAsync(Guid id);
-        Task<T> GetFirstAsync(Expression<Func<T, bool>> predicate, bool trackChanges = false);
+        Task<T> GetFirstAsync(Expression<Func<T, bool>> predicate);
         void Add(T entity);
         void SafeDelete(T entity);
         void Delete(T entity);

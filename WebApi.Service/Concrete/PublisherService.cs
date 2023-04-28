@@ -17,11 +17,14 @@ namespace WebApi.Service.Concrete
 {
     public sealed class PublisherService : IPublisherService
     {
+        #region Fields
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IRepository<Publisher> _publisherRepo;
         private readonly IValidator<Publisher> _validator;
+        #endregion
 
+        #region Ctor
         public PublisherService(IUnitOfWork unitOfWork, IMapper mapper, IRepository<Publisher> publisherRepo, IValidator<Publisher> validator)
         {
             _unitOfWork = unitOfWork;
@@ -29,38 +32,23 @@ namespace WebApi.Service.Concrete
             _publisherRepo = publisherRepo;
             _validator = validator;
         }
+        #endregion
 
-        private async Task SavePublisherAsync()
+        public async Task<(List<PublisherDto> publishers, Metadata metadata)> GetPublishersAsync(Expression<Func<Publisher, bool>> predicate = null, PublisherRequestFilter filters = null)
         {
-            int effectedRows;
-            try
-            {
-                effectedRows = await _unitOfWork.SaveAsync();
-            }
-            catch (Exception e)
-            {
-                throw new PublisherInternalServerError500Exception(e.Message);
-            }
-
-            if (effectedRows != 1)
-                throw new PublisherInternalServerError500Exception();
-        }
-
-        public async Task<(List<PublisherDto> publishers, Metadata metadata)> GetPublishersAsync(Expression<Func<Publisher, bool>> predicate = null, PublisherRequestFilter filters = null, bool trackChanges = false)
-        {
-            var publishers = _publisherRepo.GetAllAsync(predicate, trackChanges);
-            var filteredPublishers = filters is not null
-                ? await publishers
-                    .GetFilteredPublishers(filters)
+            var publishers = _publisherRepo
+                .GetAllAsync(predicate)
+                .GetFilteredPublishers(filters);
+            var filteredPublishers = await publishers
                     .Skip((filters.Page - 1) * filters.PageSize)
-                    .Take(filters.PageSize).ToListAsync()
-                : await publishers.ToListAsync();
+                    .Take(filters.PageSize)
+                    .ToListAsync();
 
             Metadata metadata = new Metadata()
             {
                 CurrentPage = filters.Page,
                 PageSize = filters.PageSize,
-                TotalPages = publishers.Count() / filters.PageSize,
+                //TotalPages = publishers.Count() / filters.PageSize,
                 TotalEntities = publishers.Count()
             };
 
@@ -75,14 +63,6 @@ namespace WebApi.Service.Concrete
             return _mapper.Map<PublisherDto>(publisher);
         }
 
-        public async Task<PublisherDto> GetFirstPublisherAsync(Expression<Func<Publisher, bool>> predicate, bool trackChanges = false)
-        {
-            var publisher = await _publisherRepo.GetFirstAsync(predicate, trackChanges);
-            return publisher is not null
-            ? _mapper.Map<PublisherDto>(publisher)
-            : null;
-        }
-
         public async Task<PublisherDto> AddPublisherAsync(PublisherAddDto entity)
         {
             var publisher = _mapper.Map<Publisher>(entity);
@@ -91,13 +71,6 @@ namespace WebApi.Service.Concrete
             await SavePublisherAsync();
 
             return _mapper.Map<PublisherDto>(publisher);
-        }
-
-        public async Task DeletePublisherAsync(Guid id)
-        {
-            var publisher = await PublisherExistsAsync(id);
-            _publisherRepo.Delete(publisher);
-            await SavePublisherAsync();
         }
 
         public async Task SafeDeletePublisherAsync(Guid id)
@@ -113,16 +86,26 @@ namespace WebApi.Service.Concrete
             var map = _mapper.Map<Publisher>(entity);
             await PublisherValidatorAsync(map);
             var publisher = await PublisherExistsAsync(entity.Id);
-
             _mapper.Map(entity, publisher);
             _publisherRepo.Update(publisher);
             await SavePublisherAsync();
-
         }
 
-        public async Task<int> CountPublishersAsync(Expression<Func<Publisher, bool>> predicate)
+        #region Private Methods
+        private async Task SavePublisherAsync()
         {
-            return await _publisherRepo.CountAsync(predicate);
+            int effectedRows;
+            try
+            {
+                effectedRows = await _unitOfWork.SaveAsync();
+            }
+            catch (Exception e)
+            {
+                throw new PublisherInternalServerError500Exception(e.Message);
+            }
+
+            if (effectedRows != 1)
+                throw new PublisherInternalServerError500Exception();
         }
 
         private async Task PublisherValidatorAsync(Publisher publisher)
@@ -140,5 +123,28 @@ namespace WebApi.Service.Concrete
 
             return publisher;
         }
+        #endregion
+
+        #region Methods that can be needed later
+        //public async Task<PublisherDto> GetFirstPublisherAsync(Expression<Func<Publisher, bool>> predicate, bool trackChanges = false)
+        //{
+        //    var publisher = await _publisherRepo.GetFirstAsync(predicate, trackChanges);
+        //    return publisher is not null
+        //    ? _mapper.Map<PublisherDto>(publisher)
+        //    : null;
+        //}
+
+        //public async Task DeletePublisherAsync(Guid id)
+        //{
+        //    var publisher = await PublisherExistsAsync(id);
+        //    _publisherRepo.Delete(publisher);
+        //    await SavePublisherAsync();
+        //}
+
+        //public async Task<int> CountPublishersAsync(Expression<Func<Publisher, bool>> predicate)
+        //{
+        //    return await _publisherRepo.CountAsync(predicate);
+        //}
+        #endregion
     }
 }

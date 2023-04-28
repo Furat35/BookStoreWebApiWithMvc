@@ -7,6 +7,8 @@ namespace WebApi.Service.Extensions.Filters
     {
         public static IQueryable<Author> GetFilterAuthors(this IQueryable<Author> author, AuthorRequestFilter filters)
         {
+            if (filters is null)
+                return author;
             return author
                 .Where(_ =>
                     filters.FirstName != null

@@ -3,7 +3,7 @@ using WebApi.Service.Abstract;
 
 namespace WebApi.Service.Concrete
 {
-    public class CacheService<T> : ICacheService<T>
+    public sealed class CacheService : ICacheService
     {
         private readonly IMemoryCache _cache;
 
@@ -12,7 +12,7 @@ namespace WebApi.Service.Concrete
             _cache = cache;
         }
 
-        public void TryAdd(string key, T value)
+        public void Add(string key, object value)
         {
             _cache.Set(key, value, new MemoryCacheEntryOptions()
             {
@@ -21,15 +21,24 @@ namespace WebApi.Service.Concrete
             });
         }
 
-        public T TryGet(string key)
+        public object Get(string key)
         {
-            _cache.TryGetValue(key, out T entities);
-            return entities;
+
+            if (_cache.TryGetValue(key, out object result))
+                return result;
+
+            return null;
         }
 
         public void Remove(string key)
         {
-            _cache.Remove(key);
+            if (Exists(key))
+                _cache.Remove(key);
+        }
+
+        public bool Exists(string key)
+        {
+            return _cache.TryGetValue(key, out object value);
         }
     }
 }

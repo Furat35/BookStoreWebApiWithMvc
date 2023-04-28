@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Profile"] = "Account";
+
+}
+<div class="row mt-5">
+
+    <partial name="~/Areas/Admin/Views/Profile/_LeftNavbar.cshtml" />
+
+    <div class="col-10 row justify-content-center">
+        <h5 class="text-center">Delete My Account</h5>
+        <form asp-action="Delete" class="w-25" style="margin-top:50px;" method="post">
+            <button class="form-control" type="submit">Confirm</button>
+        </form>
+    </div>
+</div>
