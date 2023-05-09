@@ -32,15 +32,15 @@ namespace BookStore.WebMVC.Areas.Admin.Controllers
         {
             var response = await _authService.LoginAsync(loginDto, HttpContext);
             return response.IsSuccess
-                ? RedirectToAction("Index", "Book")
-                : NotFound();
+                ? RedirectToAction("Index", "Book", new {Area = "Admin"})
+                : RedirectToAction(nameof(Login));
         }
 
         [HttpGet]
         public IActionResult Register()
         {
             if (User.Identity.IsAuthenticated)
-                return NotFound();
+                return RedirectToAction("Index","Book", new { Area = "Admin" });
             return View();
         }
 
@@ -52,7 +52,7 @@ namespace BookStore.WebMVC.Areas.Admin.Controllers
                 return NotFound();
             var response = await _authService.RegisterAsync(registerDto);
             return response.IsSuccess
-                ? Ok()
+                ? RedirectToAction("Index","Book", new { Area = "Admin" })
                 : CreatedAtAction(nameof(Login), response);
         }
 
