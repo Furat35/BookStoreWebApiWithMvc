@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
-
-namespace WebApi.Core.Models.Publisher
+﻿namespace WebApi.Core.Models.Publisher
 {
     public record PublisherAddDto
     {
@@ -10,7 +8,7 @@ namespace WebApi.Core.Models.Publisher
         }
         public PublisherAddDto(string publisherName)
         {
-            
+
             PublisherName = publisherName;
         }
         public string PublisherName { get; init; }

@@ -18,7 +18,7 @@ namespace WebApi.Entity.EntityTypeConfigs
                     FirstName = "firat",
                     LastName = "ortac",
                     Phone = "5375626252",
-                    Mail = "furat__@hotmail.com",
+                    Mail = "ahmet__@hotmail.com",
                     BirthDate = new DateTime(2000,10,20),
                     CreateDate = DateTime.Now,
                     IsDeleted = false

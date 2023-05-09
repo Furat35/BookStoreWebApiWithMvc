@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WebApi.Core.Exceptions;
 using WebApi.Core.Exceptions.AppRole;
 using WebApi.Core.Models.AppRole;
 using WebApi.Core.RequestFilters;
@@ -36,6 +37,14 @@ namespace WebApi.Service.Concrete
                 .AsNoTracking();
             if (predicate is not null)
                 roles.Where(predicate);
+
+            var roleSkip = (filters.Page - 1) * filters.PageSize;
+            bool isValidPage = roles.Count() > roleSkip
+                ? true
+                : false;
+
+            if (!isValidPage)
+                throw new InvalidPageException();
 
             Metadata metadata = new Metadata()
             {

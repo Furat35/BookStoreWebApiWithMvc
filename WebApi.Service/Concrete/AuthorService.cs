@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WebApi.Core.Exceptions;
 using WebApi.Core.Exceptions.Author;
 using WebApi.Core.Models.Author;
 using WebApi.Core.RequestFilters;
@@ -39,8 +40,17 @@ namespace WebApi.Service.Concrete
             var authors = _authorRepo
                 .GetAllAsync(predicate)
                 .GetFilterAuthors(filters);
+
+            var authorSkip = (filters.Page - 1) * filters.PageSize;
+            bool isValidPage = authors.Count() > authorSkip
+                ? true
+                : false;
+
+            if (!isValidPage)
+                throw new InvalidPageException();
+
             var filteredAuthors = await authors
-                .Skip((filters.Page - 1) * filters.PageSize)
+                .Skip(authorSkip)
                 .Take(filters.PageSize)
                 .ToListAsync();
 

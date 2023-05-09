@@ -35,7 +35,7 @@ namespace BookStore.ApiServices.Concrete
 
         public async Task<ResponseMessage<string>> DeleteGenreAsync(Guid id) =>
             await _httpClient.PostInRoute<string>($"{WebApiConsts.Api}/{WebApiConsts.Genres}/{WebApiConsts.Delete}", id.ToString());
-        
+
         public async Task<ResponseMessage<string>> SafeDeleteGenreAsync(Guid id) =>
             await _httpClient.PostInRoute<string>($"{WebApiConsts.Api}/{WebApiConsts.Genres}/{WebApiConsts.SafeDelete}", id.ToString());
     }

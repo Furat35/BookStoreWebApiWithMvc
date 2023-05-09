@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WebApi.Core.Exceptions;
 using WebApi.Core.Exceptions.Genre;
 using WebApi.Core.Models.Genres;
 using WebApi.Core.RequestFilters;
@@ -40,8 +41,17 @@ namespace WebApi.Service.Concrete
                 .GetAllAsync(predicate)
                 .GetFilteredBooks(filters);
 
+            var genreSkip = (filters.Page - 1) * filters.PageSize;
+            bool isValidPage = genres.Count() > genreSkip
+                ? true
+                : false;
+
+            if (!isValidPage)
+                throw new InvalidPageException();
+
+
             var filteredGenres = await genres
-                .Skip((filters.Page - 1) * filters.PageSize)
+                .Skip(genreSkip)
                 .Take(filters.PageSize)
                 .ToListAsync();
 

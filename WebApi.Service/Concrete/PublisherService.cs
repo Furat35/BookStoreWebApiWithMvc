@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WebApi.Core.Exceptions;
 using WebApi.Core.Exceptions.Book;
 using WebApi.Core.Exceptions.Publisher;
 using WebApi.Core.Models.Publisher;
@@ -39,8 +40,17 @@ namespace WebApi.Service.Concrete
             var publishers = _publisherRepo
                 .GetAllAsync(predicate)
                 .GetFilteredPublishers(filters);
+
+            var publisherSkip = (filters.Page - 1) * filters.PageSize;
+            bool isValidPage = publishers.Count() > publisherSkip
+                ? true
+                : false;
+
+            if (!isValidPage)
+                throw new InvalidPageException();
+
             var filteredPublishers = await publishers
-                    .Skip((filters.Page - 1) * filters.PageSize)
+                    .Skip(publisherSkip)
                     .Take(filters.PageSize)
                     .ToListAsync();
 

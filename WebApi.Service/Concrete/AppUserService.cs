@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WebApi.Core.Exceptions;
 using WebApi.Core.Exceptions.AppUser;
 using WebApi.Core.Models.AppUser;
 using WebApi.Core.RequestFilters;
@@ -85,6 +86,14 @@ namespace WebApi.Service.Concrete
                 .AsNoTracking();
             if (predicate != null)
                 users = users.Where(predicate);
+
+            var userSkip = (filters.Page - 1) * filters.PageSize;
+            bool isValidPage = users.Count() > userSkip
+                ? true
+                : false;
+
+            if (!isValidPage)
+                throw new InvalidPageException();
 
             Metadata metadata = new Metadata()
             {

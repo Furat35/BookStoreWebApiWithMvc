@@ -34,12 +34,16 @@ namespace WebApi.Service.ActionAttributes
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {
-            base.OnActionExecuted(context);
-            _cacheService = (ICacheService)context.HttpContext.RequestServices.GetService(typeof(ICacheService));
-            _cacheName = $"{context.Controller}.{extension}";
-            _cacheService.Add(_cacheName, context.Result);
-            _cacheService.Add("X-Pagination", context.HttpContext.Response.Headers["X-Pagination"]);
-            _cacheService.Add("QueryParams", context.HttpContext.Request.QueryString.Value);
+            if (context.Exception is null)
+            {
+                base.OnActionExecuted(context);
+                _cacheService = (ICacheService)context.HttpContext.RequestServices.GetService(typeof(ICacheService));
+                _cacheName = $"{context.Controller}.{extension}";
+                _cacheService.Add(_cacheName, context.Result);
+                _cacheService.Add("X-Pagination", context.HttpContext.Response.Headers["X-Pagination"]);
+                _cacheService.Add("QueryParams", context.HttpContext.Request.QueryString.Value);
+            }
+
 
         }
     }

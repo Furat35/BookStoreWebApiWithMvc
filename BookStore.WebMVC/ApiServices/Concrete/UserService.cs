@@ -24,7 +24,7 @@ namespace BookStore.ApiServices.Concrete
         public async Task<(ResponseMessage<List<AppUserDto>> response, Metadata metadata)> GetAppUsersAsync(UserRequestFilter filters = null) =>
             await _httpClient.GetAllAsync<List<AppUserDto>>($"{WebApiConsts.Api}/{WebApiConsts.AppUsers}", filters);
 
-        public async Task<ResponseMessage<AppUserDto>> GetAppUserAsync(Guid id) => 
+        public async Task<ResponseMessage<AppUserDto>> GetAppUserAsync(Guid id) =>
             await _httpClient.GetAsync<AppUserDto>($"{WebApiConsts.Api}/{WebApiConsts.AppUsers}", id.ToString());
 
         public async Task<ResponseMessage<AppUserAddDto>> AddAppUserAsync(AppUserAddDto AppUserAddDto) =>
